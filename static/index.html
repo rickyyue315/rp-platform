@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RP Parameter Platform</title>
+<style>
+  :root{
+    --bg:#f6f6f7; --card:#ffffff; --line:#e4e4e8; --line-2:#d3d3da;
+    --text:#1c1c1e; --muted:#6b6b73; --faint:#9a9aa2;
+    --accent:#4b3f9e; --accent-soft:#eeecfa; --accent-2:#1d9e75;
+    --warn:#b45309; --warn-soft:#fdf3e3; --danger:#a32d2d; --danger-soft:#fbeaea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font-family:system-ui,-apple-system,"Segoe UI","Microsoft JhengHei","PingFang HK",sans-serif;
+       font-size:14px;line-height:1.6;}
+  header{background:var(--card);border-bottom:1px solid var(--line);padding:18px 28px 0;}
+  .brand{display:flex;align-items:baseline;gap:12px}
+  .brand h1{font-size:17px;font-weight:600;margin:0;letter-spacing:-.2px}
+  .brand span{color:var(--faint);font-size:12.5px}
+  .tabs{display:flex;gap:4px;margin-top:14px}
+  .tab{padding:9px 16px;border:1px solid transparent;border-bottom:none;border-radius:8px 8px 0 0;
+       background:none;color:var(--muted);font-size:13.5px;cursor:pointer;font-family:inherit}
+  .tab:hover{color:var(--text)}
+  .tab.active{background:var(--bg);border-color:var(--line);color:var(--text);font-weight:500}
+  main{padding:22px 28px 60px;max-width:1500px}
+  .panel{display:none}
+  .panel.active{display:block}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:16px}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+  label.field{display:block;border:1px dashed var(--line-2);border-radius:10px;padding:14px;cursor:pointer;
+              background:#fcfcfd;transition:.15s}
+  label.field:hover{border-color:var(--accent);background:var(--accent-soft)}
+  label.field.filled{border-style:solid;border-color:var(--accent);background:var(--accent-soft)}
+  .field b{display:block;font-size:13px;font-weight:500;margin-bottom:2px}
+  .field small{color:var(--muted);font-size:12px;display:block}
+  .field .fname{font-size:12px;color:var(--accent);margin-top:6px;word-break:break-all;min-height:16px}
+  input[type=file]{display:none}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  button{font-family:inherit;font-size:13.5px;border-radius:8px;border:1px solid var(--line-2);
+         background:var(--card);padding:8px 16px;cursor:pointer;color:var(--text)}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}
+  button.primary:hover{background:#3f3589;color:#fff}
+  button.primary:disabled{background:#b9b4d6;border-color:#b9b4d6;cursor:not-allowed}
+  select,textarea,input[type=text]{font-family:inherit;font-size:13.5px;border:1px solid var(--line-2);
+        border-radius:8px;padding:8px 10px;background:var(--card);color:var(--text)}
+  textarea{width:100%;min-height:90px;resize:vertical;font-family:var(--mono,monospace)}
+  .chips{display:flex;gap:10px;flex-wrap:wrap;margin:4px 0 0}
+  .chip{background:var(--accent-soft);border:1px solid #dcd7f5;border-radius:8px;padding:8px 14px;min-width:104px}
+  .chip em{display:block;font-style:normal;font-size:11.5px;color:var(--muted)}
+  .chip b{font-size:17px;font-weight:600;color:var(--accent)}
+  table{border-collapse:collapse;width:100%;font-size:12.5px}
+  th,td{border-bottom:1px solid var(--line);padding:7px 10px;text-align:left;white-space:nowrap}
+  th{background:#fafafa;font-weight:500;color:var(--muted);position:sticky;top:0;z-index:1}
+  tbody tr:hover{background:#fbfaff}
+  .scroll{max-height:520px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+  .hint{color:var(--muted);font-size:12.5px;margin:8px 0 0}
+  .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11.5px;background:var(--warn-soft);color:var(--warn)}
+  .badge.err{background:var(--danger-soft);color:var(--danger)}
+  .badge.ok{background:#e6f4ee;color:var(--accent-2)}
+  .section-title{font-size:13px;font-weight:600;margin:0 0 10px;color:var(--text)}
+  .empty{color:var(--faint);font-size:13px;padding:26px;text-align:center}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:10px}
+  .stat{border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .stat em{font-style:normal;display:block;font-size:12px;color:var(--muted)}
+  .stat b{font-size:19px;font-weight:600}
+  .upl{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .upl:last-child{border-bottom:none}
+  .note{background:#fffdf5;border:1px solid #f0e3bd;border-radius:10px;padding:12px 14px;font-size:12.5px;color:#6b5a22}
+  code{background:#f2f2f5;padding:1px 5px;border-radius:4px;font-size:12px}
+  /* 數據核對 */
+  .alert{border-radius:10px;padding:11px 14px;font-size:12.8px;margin-bottom:14px;display:flex; gap:10px;align-items:baseline;flex-wrap:wrap}
+  .alert.err{background:var(--danger-soft);border:1px solid #efc8c8;color:#7d2020}
+  .alert.warn{background:var(--warn-soft);border:1px solid #efdcb8;color:#6b4a12}
+  .alert.ok{background:#e9f6f0;border:1px solid #bfe4d5;color:#166b4e}
+  .alert a{color:inherit;font-weight:500;text-decoration:underline;cursor:pointer}
+  .chk{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:#fff}
+  .chk summary{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;list-style:none;font-size:13px}
+  .chk summary::-webkit-details-marker{display:none}
+  .chk summary::before{content:"▸";color:var(--faint);font-size:11px;transition:transform .15s}
+  .chk[open] summary::before{transform:rotate(90deg)}
+  .chk-label{font-weight:500}
+  .sev{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+  .sev-error{background:var(--danger)} .sev-warn{background:#d99100} .sev-info{background:#6f7fd1}
+  .cnt{margin-left:auto;font-size:12px;padding:1px 9px;border-radius:20px;background:#f2f2f5;color:var(--muted)}
+  .cnt.err{background:var(--danger-soft);color:var(--danger)}
+  .cnt.warn{background:var(--warn-soft);color:var(--warn)}
+  .cnt.info{background:#eef0fb;color:#4a56a8}
+  .chk-body{padding:0 14px 12px 36px}
+  .chk-body .why{margin:0 0 6px;font-size:12.5px;color:var(--muted)}
+  .chk-body .why b{color:var(--text);font-weight:500}
+  .chk-body .scroll{margin-top:8px;max-height:260px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <h1>RP Parameter Platform</h1>
+    <span>新 SKU / 車期 Code 計算 · ZIUMM003 → ZIUMM0033</span>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-tab="calc">參數計算</button>
+    <button class="tab" data-tab="lookup">車期查詢</button>
+    <button class="tab" data-tab="ref">主數據</button>
+  </div>
+</header>
+
+<main>
+  <section class="panel active" id="panel-calc">
+    <div class="card">
+      <p class="section-title">1｜上載 SAP 匯出檔</p>
+      <div class="grid3">
+        <label class="field" id="f-rp">
+          <b>ZIUMM003 RP 清單 <span style="color:#a32d2d">*</span></b>
+          <small>xlsx / txt / csv，需含 Site、Article 及 RP 參數欄</small>
+          <span class="fname"></span>
+          <input type="file" id="rp_file" accept=".xlsx,.xls,.txt,.csv,.tsv">
+        </label>
+        <label class="field" id="f-master">
+          <b>Article Master（選填）</b>
+          <small>提供 Supply Source、Major vendor (SAP)</small>
+          <span class="fname"></span>
+          <input type="file" id="master_file" accept=".xlsx,.xls,.txt,.csv,.tsv">
+        </label>
+        <label class="field" id="f-ideal">
+          <b>Ideal Stock（選填）</b>
+          <small>兩欄：SKU、Qty；有值會覆蓋 Safety Qty</small>
+          <span class="fname"></span>
+          <input type="file" id="ideal_file" accept=".xlsx,.xls,.txt,.csv,.tsv">
+        </label>
+      </div>
+      <p class="hint">Article Master 有上載時，Supply Source 以 Article Master 為準；未上載則沿用 RP 清單現值。</p>
+    </div>
+
+    <div class="card">
+      <p class="section-title">2｜計算模式</p>
+      <div class="row">
+        <select id="mode">
+          <option value="NEW_SKU">新 SKU 建立（RP Type = ND，Historical = 2）</option>
+          <option value="ND_TO_RF">舊 SKU：ND → RF（Historical = 3）</option>
+          <option value="RF_TO_ND">舊 SKU：RF → ND</option>
+        </select>
+        <button class="primary" id="btn-run">執行計算</button>
+        <button id="btn-template">下載輸入欄位範本</button>
+        <span id="run-status" class="hint" style="margin:0"></span>
+      </div>
+    </div>
+
+    <div class="card" id="card-result" style="display:none">
+      <div class="row" style="justify-content:space-between">
+        <p class="section-title" style="margin:0">3｜結果</p>
+        <div class="row">
+          <button id="btn-xlsx">下載 Excel（含問題清單）</button>
+          <button class="primary" id="btn-txt">下載 ZIUMM0033 TXT</button>
+        </div>
+      </div>
+      <div class="chips" id="summary"></div>
+      <div class="alert" id="health-alert" style="display:none;margin-top:14px"></div>
+      <div id="problem-box" style="margin-top:16px"></div>
+      <div class="scroll" style="margin-top:14px"><table id="result-table"></table></div>
+      <p class="hint" id="table-note"></p>
+    </div>
+
+    <div class="card" id="card-health" style="display:none">
+      <div class="row" style="justify-content:space-between">
+        <p class="section-title" style="margin:0">4｜數據核對 <span id="health-tag"></span></p>
+        <span class="hint" style="margin:0" id="health-scope"></span>
+      </div>
+      <p class="hint" style="margin:6px 0 12px">
+        用 ZIUMM003 的現行值反查六張主數據表。<b>只讀，不會改任何資料</b>；有問題請去「主數據」頁修正。
+      </p>
+      <div id="health-list"></div>
+    </div>
+
+    <div class="note" id="fmt-note">
+      TXT 現以 <code>Tab 分隔、無 header、UTF-8</code> 輸出，欄序沿用 Final Result 2 的 65 欄。
+      正式上線前請提供一份 ZIUMM0033 成功上載檔，我按實際格式微調。
+    </div>
+  </section>
+
+  <section class="panel" id="panel-lookup">
+    <div class="card">
+      <p class="section-title">車期 Code 查詢</p>
+      <textarea id="shop-input" placeholder="貼上店舖編號，可用逗號、空格或換行分隔&#10;例如：S001, S002, S003, S004"></textarea>
+      <div class="row" style="margin-top:12px">
+        <input type="text" id="vendor-input" placeholder="Vendor no.（選填，查行貨車期）" style="width:260px">
+        <button class="primary" id="btn-lookup">查詢</button>
+        <button id="btn-lookup-csv">下載 CSV</button>
+      </div>
+      <p class="hint">倉貨 → 取 Warehouse Calendar 的 P / D；填 Vendor 後同時顯示 Vendor Schedule 的 Planning / Delivery 及 Lead Time。</p>
+    </div>
+    <div class="card">
+      <div class="scroll"><table id="lookup-table"></table></div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-ref">
+    <div class="card">
+      <p class="section-title">主數據現況</p>
+      <div class="stats" id="ref-stats"></div>
+      <p class="hint" id="db-info" style="margin-top:10px"></p>
+    </div>
+    <div class="card">
+      <p class="section-title">更新主數據</p>
+      <div id="ref-uploads"></div>
+      <p class="hint">上載 CSV 或 Excel 均可，第一行需為欄名。上載會<b>整表覆蓋</b>（單一 transaction，失敗自動回滾），
+        舊內容會自動備份到 <code>reference/backup/</code>。</p>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+let currentRun = null;
+let lookupRows = [];
+let refInfo = null;
+
+$$('.tab').forEach(t => t.onclick = () => {
+  $$('.tab').forEach(x => x.classList.remove('active'));
+  $$('.panel').forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  $('#panel-' + t.dataset.tab).classList.add('active');
+});
+
+['rp_file', 'master_file', 'ideal_file'].forEach(id => {
+  const input = $('#' + id);
+  input.onchange = () => {
+    const box = input.closest('.field');
+    const name = input.files[0] ? input.files[0].name : '';
+    box.querySelector('.fname').textContent = name;
+    box.classList.toggle('filled', !!name);
+  };
+});
+
+async function postForm(url, form) {
+  const res = await fetch(url, { method: 'POST', body: form });
+  const data = await res.json().catch(() => ({ detail: '伺服器回應格式錯誤' }));
+  if (!res.ok) throw new Error(data.detail || ('HTTP ' + res.status));
+  return data;
+}
+
+$('#btn-run').onclick = async () => {
+  const file = $('#rp_file').files[0];
+  if (!file) { alert('請先選擇 ZIUMM003 RP 清單'); return; }
+  const btn = $('#btn-run');
+  btn.disabled = true; btn.textContent = '計算中…';
+  $('#run-status').textContent = '';
+  try {
+    const form = new FormData();
+    form.append('rp_file', file);
+    if ($('#master_file').files[0]) form.append('master_file', $('#master_file').files[0]);
+    if ($('#ideal_file').files[0]) form.append('ideal_file', $('#ideal_file').files[0]);
+    form.append('mode', $('#mode').value);
+    const data = await postForm('/api/compute', form);
+    currentRun = data.run_id;
+    renderResult(data);
+    $('#run-status').textContent = '完成：' + data.summary.rows + ' 行';
+  } catch (err) {
+    alert('計算失敗：' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = '執行計算';
+  }
+};
+
+function renderResult(data) {
+  const s = data.summary;
+  const split = Object.entries(s.supply_source_split || {})
+    .map(([k, v]) => `SS ${k}: ${v}`).join(' · ');
+  const chips = [
+    ['資料行數', s.rows], ['店舖', s.shops], ['SKU', s.articles],
+    ['有問題行', s.problem_rows], ['模式', s.mode_label.replace(/（.*/, '')]
+  ];
+  $('#summary').innerHTML = chips.map(([k, v]) => `<div class="chip"><em>${k}</em><b>${v}</b></div>`).join('')
+    + `<div class="chip" style="min-width:180px"><em>Supply Source 分佈</em><b style="font-size:13px">${split || '—'}</b></div>`;
+
+  const pb = $('#problem-box');
+  if (data.total_problems) {
+    const rows = data.problems.map(p =>
+      `<tr><td>${p.Site}</td><td>${p.Article}</td><td>${p.MC}</td><td>${p['Supply Source']}</td><td style="white-space:normal">${p.Issue}</td></tr>`).join('');
+    pb.innerHTML = `<p class="section-title">Problem Transactions <span class="badge err">${data.total_problems}</span></p>
+      <div class="scroll" style="max-height:220px"><table><thead><tr><th>Site</th><th>Article</th><th>MC</th><th>SS</th><th>問題</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  } else {
+    pb.innerHTML = `<p class="section-title">Problem Transactions <span class="badge ok">0</span></p>
+      <p class="hint" style="margin:0">所有 lookup 都命中，可以直接出 TXT。</p>`;
+  }
+
+  const cols = data.columns;
+  const head = `<thead><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead>`;
+  const body = data.rows.map(r => `<tr>${cols.map(c => `<td>${r[c] ?? ''}</td>`).join('')}</tr>`).join('');
+  $('#result-table').innerHTML = head + '<tbody>' + body + '</tbody>';
+  $('#table-note').textContent = data.total_rows > data.rows.length
+    ? `預覽前 ${data.rows.length} 行，共 ${data.total_rows} 行；下載檔含全部資料。` : '';
+  $('#card-result').style.display = 'block';
+  renderHealth(data.health);
+}
+
+function renderHealth(h) {
+  const card = $('#card-health');
+  if (!h) { card.style.display = 'none'; return; }
+
+  const failed = h.checks.filter(c => c.count > 0);
+  const passed = h.checks.filter(c => c.count === 0);
+
+  const tag = $('#health-tag');
+  tag.className = 'badge ' + (h.status === 'ok' ? 'ok' : h.status === 'error' ? 'err' : '');
+  tag.textContent = h.status === 'ok' ? '全部通過' : `${h.issues} 項待處理`;
+
+  const sc = h.scope;
+  $('#health-scope').textContent =
+    `${sc.rows.toLocaleString()} 行 · ${sc.sites} 店 · ${sc.articles.toLocaleString()} SKU` +
+    (sc.has_master ? ' · 已對 Article Master' : ' · 未上載 Article Master');
+
+  const list = $('#health-list');
+  if (!failed.length) {
+    list.innerHTML = `<div class="alert ok" style="margin:0">
+      11 項檢查全部通過：主數據與 SAP 現行值一致，可直接出 TXT。</div>`;
+  } else {
+    list.innerHTML = failed.map(c => {
+      const rows = (c.sample || []).map(r =>
+        `<tr><td>${r.Site}</td><td>${r.Article}</td><td>${r.Current}</td><td>${r.Master}</td>
+         <td style="white-space:normal">${r.Note}</td></tr>`).join('');
+      const trunc = c.truncated
+        ? `<p class="hint">另有 ${c.truncated.toLocaleString()} 筆未列出。</p>` : '';
+      return `<details class="chk">
+        <summary>
+          <span class="sev sev-${c.severity}"></span>
+          <span class="chk-label">${c.label}</span>
+          <span class="cnt ${c.severity}">${c.count.toLocaleString()}</span>
+        </summary>
+        <div class="chk-body">
+          <p class="why"><b>影響：</b>${c.why}</p>
+          <p class="why"><b>點修：</b>${c.fix}</p>
+          ${rows ? `<div class="scroll"><table><thead><tr><th>Site</th><th>Article</th>
+            <th>現值</th><th>主數據</th><th>說明</th></tr></thead><tbody>${rows}</tbody></table></div>` : ''}
+          ${trunc}
+        </div>
+      </details>`;
+    }).join('') + (passed.length
+      ? `<p class="hint">已通過 ${passed.length} 項：${passed.map(c => c.label).join('、')}</p>` : '');
+  }
+
+  const alert = $('#health-alert');
+  const jump = `<a onclick="document.getElementById('card-health').scrollIntoView({behavior:'smooth'})">查看第 4 節</a>`;
+  if (h.status === 'ok') {
+    alert.className = 'alert ok';
+    alert.innerHTML = `<b>數據核對通過</b><span>主數據與 SAP 現行值沒有差異。</span>`;
+  } else if (h.blocking > 0) {
+    alert.className = 'alert err';
+    alert.innerHTML = `<b>數據核對：${h.blocking} 項會令車期／Safety Qty 出錯</b><span>${jump}</span>`;
+  } else {
+    alert.className = 'alert warn';
+    alert.innerHTML = `<b>數據核對：${h.issues} 項待確認（不阻塞輸出）</b><span>${jump}</span>`;
+  }
+  alert.style.display = 'flex';
+  card.style.display = 'block';
+}
+
+$('#btn-xlsx').onclick = () => { if (currentRun) location.href = `/api/export/${currentRun}?fmt=xlsx`; };
+$('#btn-txt').onclick = () => { if (currentRun) location.href = `/api/export/${currentRun}?fmt=txt`; };
+
+$('#btn-template').onclick = async () => {
+  const info = refInfo || await (await fetch('/api/reference')).json();
+  const cols = info.output_columns.slice(0, 40);
+  const blob = new Blob(['\ufeff' + cols.join('\t') + '\r\n'], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ZIUMM003_input_template.txt';
+  a.click();
+};
+
+$('#btn-lookup').onclick = async () => {
+  const form = new FormData();
+  form.append('shops', $('#shop-input').value);
+  form.append('vendor', $('#vendor-input').value.trim());
+  try {
+    const data = await postForm('/api/lookup', form);
+    lookupRows = data.rows;
+    const cols = Object.keys(data.rows[0] || {});
+    $('#lookup-table').innerHTML = `<thead><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>`
+      + data.rows.map(r => `<tr>${cols.map(c => `<td>${r[c] ?? ''}</td>`).join('')}</tr>`).join('') + '</tbody>';
+  } catch (err) { alert(err.message); }
+};
+
+$('#btn-lookup-csv').onclick = () => {
+  if (!lookupRows.length) { alert('請先查詢'); return; }
+  const cols = Object.keys(lookupRows[0]);
+  const csv = [cols.join(',')].concat(lookupRows.map(r => cols.map(c => `"${r[c] ?? ''}"`).join(','))).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'cycle_lookup.csv';
+  a.click();
+};
+
+const REF_TABLES = [
+  ['calendar', 'Warehouse Calendar', 'Shop / P / D'],
+  ['shop_class', 'Shop_Class', 'Shop / Class / Status / Coverage A,B,C'],
+  ['vendor_schedule', 'Vendor Schedule', 'Shop / Vendor / Delivery S / Planning S / Lead Time'],
+  ['mss', 'MSS List', 'Shop / MC / A / B / C'],
+  ['moq', 'D001 MOQ', 'SKU / MOQ'],
+  ['exemption', 'Exemption Qty', 'SKU / A_A … C_C']
+];
+
+async function loadRef() {
+  refInfo = await (await fetch('/api/reference')).json();
+  const labels = { warehouse_calendar: '店舖車期', shop_class: '店舖分類', vendor_schedule: 'Vendor 車期', mss_list: 'MSS', d001_moq: 'MOQ', exemption_qty: 'Exemption' };
+  $('#ref-stats').innerHTML = Object.entries(refInfo.stats).map(([k, v]) =>
+    `<div class="stat"><em>${labels[k] || k}</em><b>${v.toLocaleString()}</b></div>`).join('');
+
+  const db = refInfo.db || {};
+  const dupTotal = Object.values(refInfo.duplicates || {}).reduce((a, b) => a + b, 0);
+  const dupNote = dupTotal
+    ? `　·　<span class="badge err">重複鍵衝突 ${dupTotal}</span>`
+    : `　·　<span class="badge ok">無重複鍵衝突</span>`;
+  $('#db-info').innerHTML = `SQLite <code>${(db.path || '').split(/[\\/]/).pop()}</code>　·　${db.size_kb ?? '—'} KB　·　可整份複製備份${dupNote}`;
+
+  $('#ref-uploads').innerHTML = REF_TABLES.map(([key, label, cols]) =>
+    `<div class="upl"><div><b style="font-weight:500">${label}</b><br><small style="color:#6b6b73">${cols}</small></div>
+     <div class="row" style="gap:6px">
+       <button onclick="location.href='/api/reference/${key}/export?fmt=csv'">匯出 CSV</button>
+       <button onclick="location.href='/api/reference/${key}/export?fmt=xlsx'">匯出 Excel</button>
+       <input type="file" id="up-${key}" accept=".csv,.txt,.xlsx,.xls" style="display:none">
+       <button class="primary" onclick="document.getElementById('up-${key}').click()">上載</button>
+     </div></div>`).join('');
+
+  REF_TABLES.forEach(([key, label]) => {
+    const input = $('#up-' + key);
+    input.onchange = async () => {
+      if (!input.files[0]) return;
+      const form = new FormData();
+      form.append('file', input.files[0]);
+      try {
+        const res = await postForm('/api/reference/' + key, form);
+        await loadRef();
+        alert(`${label} 已更新：${res.rows.toLocaleString()} 行`);
+      } catch (err) { alert('更新失敗：' + err.message); }
+      input.value = '';
+    };
+  });
+}
+
+loadRef();
+
+const params = new URLSearchParams(location.search);
+if (params.get('tab')) {
+  const tab = document.querySelector(`.tab[data-tab="${params.get('tab')}"]`);
+  if (tab) tab.click();
+}
+if (params.get('demo')) {
+  fetch('/api/demo').then(r => r.json()).then(data => {
+    currentRun = data.run_id;
+    renderResult(data);
+    $('#run-status').textContent = '示範資料：' + data.summary.rows + ' 行';
+    $('#shop-input').value = 'S001, S002, S003, S004';
+    $('#vendor-input').value = 'V001';
+    $('#btn-lookup').click();
+  }).catch(err => console.warn(err));
+}
+</script>
+</body>
+</html>

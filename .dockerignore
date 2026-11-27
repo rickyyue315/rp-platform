@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.git
+exports/
+docs/
+blocks.json
+checklist_blocks.json
+reference/rp.db
+reference/rp.db-wal
+reference/rp.db-shm
+reference/backup/

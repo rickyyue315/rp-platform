@@ -1,0 +1,30 @@
+# ---- 真實主數據：絕不上載 ----
+reference/
+seed_backup/
+
+# ---- 內部文件、截圖、文件產生器 ----
+docs/
+*.docx
+build_doc.py
+build_checklist.py
+blocks.json
+checklist_blocks.json
+
+# ---- 內部驗證（依賴未上載的真實資料）----
+validate.py
+
+# ---- 產出 ----
+exports/
+*.bak
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# ---- 環境／本機設定 ----
+.env
+.env.*
+.DS_Store
