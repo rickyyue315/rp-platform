@@ -62,7 +62,7 @@ Safety Qty 優先序：Ideal Stock > `Exemption Qty` > `MSS List` > `D001 MOQ`�
 | `exemption_qty` | SKU / A_A … C_C（9 欄） | 12 |
 
 - 上載 **CSV 或 Excel** 均可，整表替換在單一 transaction 內，失敗自動回滾
-- 上載前自動把現有內容備份成 CSV 到 `reference/backup/`
+- 上載前自動把現有內容備份成 CSV 到 `reference/backup/`，每張表保留最近 **10 份**（`RP_BACKUP_KEEP` 可調），超出自動刪除最舊的
 - 每張表可匯出 CSV／Excel
 - 載入時同步偵測「同一 key 有兩行不同值」，主數據頁顯示重複鍵衝突數
 

@@ -31,6 +31,32 @@ REFERENCE = engine.Reference()
 RUNS: Dict[str, Dict] = {}
 MAX_RUNS = 20
 MAX_TOTAL_ROWS = 200_000      # 約 500 MB；1 GB 容器留足餘裕
+BACKUP_KEEP = int(os.environ.get("RP_BACKUP_KEEP", "10"))   # 每張表保留的備份份數
+
+
+def prune_backups(backup_dir: str, prefix: str, keep: int = BACKUP_KEEP) -> int:
+    """同一張表只留最近 N 份，避免 volume 無限增長。回傳刪除份數。"""
+    if not os.path.isdir(backup_dir):
+        return 0
+    files = sorted(f for f in os.listdir(backup_dir)
+                   if f.startswith(prefix + ".") and f.endswith(".bak"))
+    removed = 0
+    for name in files[:-keep] if keep > 0 else files:
+        try:
+            os.remove(os.path.join(backup_dir, name))
+            removed += 1
+        except OSError:
+            pass
+    return removed
+
+
+def backup_info() -> Dict:
+    path = os.path.join(store.REF_DIR, "backup")
+    if not os.path.isdir(path):
+        return {"dir": path, "count": 0, "size_kb": 0, "keep": BACKUP_KEEP}
+    files = [f for f in os.listdir(path) if f.endswith(".bak")]
+    size = sum(os.path.getsize(os.path.join(path, f)) for f in files)
+    return {"dir": path, "count": len(files), "size_kb": round(size / 1024, 1), "keep": BACKUP_KEEP}
 
 
 def remember(run_id: str, run: Dict) -> None:
@@ -80,6 +106,7 @@ def reference_stats():
     return {
         "stats": REFERENCE.stats,
         "db": store.info(),
+        "backup": backup_info(),
         "duplicates": {k: len(v) for k, v in REFERENCE.duplicates.items()},
         "tables": {
             key: {"label": spec.label, "columns": spec.columns, "csv": spec.csv}
@@ -281,6 +308,7 @@ async def update_reference(table: str, file: UploadFile = File(...)):
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     store.export_frame(key).to_csv(
         os.path.join(backup_dir, f"{spec.csv}.{stamp}.bak"), index=False, encoding="utf-8-sig")
+    prune_backups(backup_dir, spec.csv)
 
     rows = store.replace_table(key, frame)
     REFERENCE.load()

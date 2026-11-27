@@ -414,7 +414,10 @@ async function loadRef() {
   const dupNote = dupTotal
     ? `　·　<span class="badge err">重複鍵衝突 ${dupTotal}</span>`
     : `　·　<span class="badge ok">無重複鍵衝突</span>`;
-  $('#db-info').innerHTML = `SQLite <code>${(db.path || '').split(/[\\/]/).pop()}</code>　·　${db.size_kb ?? '—'} KB　·　可整份複製備份${dupNote}`;
+  const bk = refInfo.backup || {};
+  const bkNote = bk.count === undefined ? ''
+    : `　·　備份 ${bk.count} 份／${((bk.size_kb || 0) / 1024).toFixed(1)} MB（每表留 ${bk.keep} 份）`;
+  $('#db-info').innerHTML = `SQLite <code>${(db.path || '').split(/[\\/]/).pop()}</code>　·　${db.size_kb ?? '—'} KB　·　可整份複製備份${bkNote}${dupNote}`;
 
   $('#ref-uploads').innerHTML = REF_TABLES.map(([key, label, cols]) =>
     `<div class="upl"><div><b style="font-weight:500">${label}</b><br><small style="color:#6b6b73">${cols}</small></div>
