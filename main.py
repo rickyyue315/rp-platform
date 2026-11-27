@@ -30,6 +30,17 @@ app = FastAPI(title="RP Parameter Platform", version="0.1.0")
 REFERENCE = engine.Reference()
 RUNS: Dict[str, Dict] = {}
 MAX_RUNS = 20
+MAX_TOTAL_ROWS = 200_000      # 約 500 MB；1 GB 容器留足餘裕
+
+
+def remember(run_id: str, run: Dict) -> None:
+    """保留最近幾次結果供匯出；同時限制總行數，避免細容器被舊 run 撐爆。"""
+    RUNS[run_id] = run
+    while len(RUNS) > MAX_RUNS or sum(len(r["rows"]) for r in RUNS.values()) > MAX_TOTAL_ROWS:
+        oldest = next(iter(RUNS))
+        if oldest == run_id:      # 剛加入的那次永遠保留
+            break
+        RUNS.pop(oldest)
 
 
 # --------------------------------------------------------------------------
@@ -122,15 +133,13 @@ async def compute(
     report = health.check(REFERENCE, rp_list, article_master=master, ideal_stock=ideal)
 
     run_id = uuid.uuid4().hex[:12]
-    RUNS[run_id] = {
+    remember(run_id, {
         "created_at": datetime.now().isoformat(timespec="seconds"),
         "mode": mode,
         "rows": result.rows,
         "problems": result.problems,
         "summary": result.summary,
-    }
-    while len(RUNS) > MAX_RUNS:
-        RUNS.pop(next(iter(RUNS)))
+    })
 
     return {
         "run_id": run_id,
@@ -192,15 +201,13 @@ def demo(mode: str = "NEW_SKU"):
     result = engine.compute(rp_list, REFERENCE, mode=mode, article_master=master)
     report = health.check(REFERENCE, rp_list, article_master=master)
     run_id = uuid.uuid4().hex[:12]
-    RUNS[run_id] = {
+    remember(run_id, {
         "created_at": datetime.now().isoformat(timespec="seconds"),
         "mode": mode,
         "rows": result.rows,
         "problems": result.problems,
         "summary": result.summary,
-    }
-    while len(RUNS) > MAX_RUNS:
-        RUNS.pop(next(iter(RUNS)))
+    })
     return {
         "run_id": run_id,
         "summary": result.summary,
