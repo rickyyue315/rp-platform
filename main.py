@@ -31,7 +31,7 @@ REFERENCE = engine.Reference()
 RUNS: Dict[str, Dict] = {}
 MAX_RUNS = 20
 MAX_TOTAL_ROWS = 200_000      # 約 500 MB；1 GB 容器留足餘裕
-BACKUP_KEEP = int(os.environ.get("RP_BACKUP_KEEP", "10"))   # 每張表保留的備份份數
+BACKUP_KEEP = int(os.environ.get("RP_BACKUP_KEEP", "5"))    # 每張表保留的備份份數
 
 
 def prune_backups(backup_dir: str, prefix: str, keep: int = BACKUP_KEEP) -> int:
@@ -59,6 +59,12 @@ def backup_info() -> Dict:
     return {"dir": path, "count": len(files), "size_kb": round(size / 1024, 1), "keep": BACKUP_KEEP}
 
 
+def prune_all_backups() -> int:
+    """啟動時把每張表的備份收斂到 BACKUP_KEEP，令調細份數即時生效。"""
+    backup_dir = os.path.join(store.REF_DIR, "backup")
+    return sum(prune_backups(backup_dir, spec.csv) for spec in store.TABLE_SPECS.values())
+
+
 def remember(run_id: str, run: Dict) -> None:
     """保留最近幾次結果供匯出；同時限制總行數，避免細容器被舊 run 撐爆。"""
     RUNS[run_id] = run
@@ -67,6 +73,11 @@ def remember(run_id: str, run: Dict) -> None:
         if oldest == run_id:      # 剛加入的那次永遠保留
             break
         RUNS.pop(oldest)
+
+
+# 啟動即按 BACKUP_KEEP 收斂舊備份（改細份數不需等下一個上載）
+if BACKUP_KEEP >= 0:
+    prune_all_backups()
 
 
 # --------------------------------------------------------------------------
