@@ -57,7 +57,7 @@ def vendor_schedule():
 def mss_list():
     rows = []
     for shop, mc in product(SHOPS, MCS[:14]):
-        base = 2 + (hash(shop + mc) % 5)
+        base = 2 + (sum(ord(c) for c in shop + mc) % 5)  # 不用 hash()，確保每次結果一致
         rows.append([shop, mc, str(base), str(base * 2), str(base * 3)])
     return rows
 
@@ -142,7 +142,5 @@ if __name__ == "__main__":
     write(os.path.join(SEED, "exemption_qty.csv"),
           ["SKU"] + [f"{c}_{a}" for c in "ABC" for a in "ABC"], exemption_qty())
 
-    demo(os.path.join(SAMPLES, "rp_list_demo.csv"),
-         os.path.join(SAMPLES, "article_master_demo.csv"))
-    demo(os.path.join(SAMPLES, "rp_list_sample.csv"),
-         os.path.join(SAMPLES, "article_master_sample.csv"))
+    demo(os.path.join(SEED, "rp_list_demo.csv"),
+         os.path.join(SEED, "article_master_demo.csv"))

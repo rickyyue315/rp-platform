@@ -173,12 +173,16 @@ async def healthcheck(
 
 @app.get("/api/demo")
 def demo(mode: str = "NEW_SKU"):
-    """用 samples/ 的示範檔跑一次，供使用說明截圖與新人練習。"""
-    sample_dir = os.path.join(BASE_DIR, "samples")
-    rp_path = os.path.join(sample_dir, "rp_list_demo.csv")
-    am_path = os.path.join(sample_dir, "article_master_demo.csv")
-    if not os.path.exists(rp_path):
+    """用 samples/ 或 seed/ 的示範檔跑一次，供使用說明截圖與新人練習。"""
+    demo_dir = next(
+        (d for d in (os.path.join(BASE_DIR, "samples"), os.path.join(BASE_DIR, "seed"))
+         if os.path.exists(os.path.join(d, "rp_list_demo.csv"))),
+        None,
+    )
+    if demo_dir is None:
         raise HTTPException(404, "找不到示範檔")
+    rp_path = os.path.join(demo_dir, "rp_list_demo.csv")
+    am_path = os.path.join(demo_dir, "article_master_demo.csv")
 
     rp_list, unmatched = _prepare(open(rp_path, "rb").read(), "rp_list_demo.csv", engine.INPUT_ALIASES)
     master = None

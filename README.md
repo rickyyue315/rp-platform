@@ -100,7 +100,7 @@ Safety Qty 優先序：Ideal Stock > `Exemption Qty` > `MSS List` > `D001 MOQ`�
 | `POST /api/reference/{table}` | 上載更新某張表（csv／xlsx） |
 | `GET /api/reference/{table}/export?fmt=csv\|xlsx` | 匯出 |
 | `GET /api/export/{run_id}?fmt=xlsx\|txt` | 匯出計算結果 |
-| `GET /api/demo` | 用 `samples/` 的虛擬資料跑一次，供試用 |
+| `GET /api/demo` | 用 `seed/` 的虛擬資料跑一次，供試用（有 `samples/` 時優先） |
 
 ## 本機啟動
 
@@ -161,8 +161,7 @@ store.py             SQLite 儲存層（整表替換 + transaction + 匯出）
 main.py              FastAPI 路由
 static/index.html    單頁前端（無框架、無 build step）
 scripts/make_seed.py 產生虛擬主數據與示範輸入
-seed/                虛擬主數據（24 店 × 12 vendor 的縮小版）
-samples/             示範 RP 清單與 Article Master
+seed/                虛擬主數據（24 店 × 12 vendor）＋示範 RP 清單
 ```
 
 ## 已知限制
